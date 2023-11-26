@@ -24,4 +24,5 @@ const register = async (req, res) => {
   }
 
   await isEmailTaken(userEmail);
+  
 };
