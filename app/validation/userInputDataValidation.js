@@ -1,39 +1,44 @@
 const User = require("../models/userModel");
 const validator = require("email-validator");
 
-const UserValidateEmail = async (req, res, userEmail) => {
-  try {
-    if (!userPassword) {
-      throw new Error("fill the email input ");
+
+const validateInputs = {
+    UserValidateEmail: (userEmail) => {
+      try {
+        if (!userEmail) {
+          throw new Error("Fill the email input");
+        }
+        if (!validator.validate(userEmail)) {
+            console.log("888");
+          throw new Error("Provide a valid user email");
+        } else {
+          return true;
+        }
+      } catch (error) {
+        throw new Error(error.message);
+      }
+    },
+    UserValidatePassword: (userPassword) => {
+      if (!userPassword) {
+        throw new Error("Provide your password");
+      } else {
+        return true;
+      }
+    },
+  };
+  const isEmailTaken = async (userEmail, res) => {
+    console.log(userEmail);
+
+    try {
+        const user = await User.findOne({ userEmail });
+
+        if (user) {
+            throw new Error("User is already taken");
+        }
+    } catch (error) {
+        console.error(error.message);
+        res.status(400).send({ error: error.message });
     }
-    if (!validator.validate(userEmail)) {
-      throw new Error("provide existing user email ");
-    } else if (User.findOne({ email: userEmail }) == true) {
-      throw new Error("this user emaill is already exist");
-    } else {
-      return true;
-    }
-  } catch (e) {
-    res.status(200).send({ message: "eternal server error" });
-  }
-};
-const UserValidatePassword = (req, res, userPassword) => {
-  const password =
-    /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9])(?!.*\s).{8,15}$/;
-  if (!userPassword) {
-    throw new Error("prowide yor password");
-  } else if (!userPassword.value.match(password)) {
-    throw new Error("this user password is not match");
-  } else {
-    return true;
-  }
 };
 
-const isEmailTaken = (req,res,userEmail)=>{
-const user = User.findOne({userEmail:userEmail})
-if(user){
-    throw new Error("user is already taken");
-};
-};
-
-module.exports = { UserValidateEmail, UserValidatePassword,isEmailTaken};
+module.exports = { validateInputs, isEmailTaken };

@@ -1,28 +1,38 @@
-const mongoose = requre("mongoose");
-const bcrypt = requre("bcrypt");
+const mongoose = require("mongoose");
+const bcrypt = require("bcrypt");
 const User = require("../models/userModel");
 const {
-  UserValidateEmail,
-  UserValidatePassword,
-  isEmailTaken,
+  validateInputs,
+  isEmailTaken
 } = require("../validation/userInputDataValidation");
+const { jwtStrategy } = require("../Strategy/jwtStrategy");
+const createUser = require("../service/userService");
+
 
 const register = async (req, res) => {
-  const { email, password } = req.body;
-  //validate email
-  const emailValidationResult = UserValidateEmail(email);
-  if (emailValidationResult.error) {
-    return res.status(400).json({ error: emailValidationResult.error.message });
-  }
+    const { userEmail, userPassword } = req.body;
 
-  // Validate password
-  const passwordValidationResult = UserValidatePassword(password);
-  if (passwordValidationResult.error) {
-    return res
-      .status(400)
-      .json({ error: passwordValidationResult.error.message });
-  }
+    try {
+        // Validate email and password (assumed functions)
+        validateInputs.UserValidateEmail(userEmail);
+        validateInputs.UserValidatePassword(userPassword);
 
-  await isEmailTaken(userEmail);
-  
+        // Check if user email is already taken (assumed function)
+        await isEmailTaken(userEmail, res);
+
+        // Register the user
+        const createdUser = await createUser(userEmail, userPassword);
+        console.log("Result of user registration:", createdUser);
+
+        // Send a success response
+        res.status(200).send("Registration successful");
+    } catch (error) {
+        console.error(error.message);
+
+        // Send an error response
+        res.status(400).send({ error: error.message });
+    }
 };
+
+
+module.exports = { register };
